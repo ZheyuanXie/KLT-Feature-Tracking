@@ -37,8 +37,8 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture("Easy.mp4")
     ret, frame = cap.read()  # get first frame
 
-    n_object = 1 # int(input("Number of objects to track:"))
     # This section is for generating bounding boxes
+    # n_object =  int(input("Number of objects to track:"))
     # bbox = np.empty((n_object,4,2), dtype=int)
     # for i in range(n_object):
     #     (xmin, ymin, boxw, boxh) = cv2.selectROI("Select Object %d"%(i),frame)
@@ -46,6 +46,7 @@ if __name__ == "__main__":
     #     bbox[i,:,:] = np.array([[xmin,ymin],[xmin+boxw,ymin],[xmin,ymin+boxh],[xmin+boxw,ymin+boxh]])
 
     # We can use fixed
+    n_object = 1
     bbox = np.array([[[291,187],[405,187],[291,267],[405,267]]])
 
     frame_gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)

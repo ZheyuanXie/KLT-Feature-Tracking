@@ -1,3 +1,9 @@
+'''
+  File name: applyGeometricTransformation.py
+  Author: 
+  Date created: 2018-11-05
+'''
+
 import cv2
 import numpy as np
 from skimage import transform as tf
@@ -20,13 +26,13 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
         new_coords = mat.dot(coords)
         newbbox[obj_idx,:,:] = new_coords[0:2,:].T
-        print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
+        # print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
         # Projected = mat.dot(np.vstack(desired_points,np.array([1,1,1,1])))
         # diff = Projected[0:2,:] - actual_points
         # distance = np.square(diff).sum(axis = 0)
         # actual_inliers = actual_points[distance < 16]
         # desired_inliers = desired_points[distance < 16]
-        # t.estimate(dst=actual_inliers, src=desired_inliers)    
+        # t.estimate(dst=actual_inliers, src=desired_inliers)
     return None, None, newbbox
 
 if __name__ == "__main__":
@@ -36,17 +42,12 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture("Easy.mp4")
     ret, frame1 = cap.read()  # get first frame
     ret, frame2 = cap.read()  # get second frame
-    ret, frame2 = cap.read()  # get second frame
-    ret, frame2 = cap.read()  # get second frame
-    ret, frame2 = cap.read()  # get second frame
-    ret, frame1 = cap.read()  # get second frame
-    ret, frame2 = cap.read()  # get second frame
-    ret, frame2 = cap.read()  # get second frame
     frame1_gray = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
     frame2_gray = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 
+   
+    # This section is for generating bounding boxes
     # n_object = int(input("Number of objects to track:"))
-    # # This section is for generating bounding boxes
     # bbox = np.empty((n_object,4,2), dtype=int)
     # for i in range(n_object):
     #     (xmin, ymin, boxw, boxh) = cv2.selectROI("Select Object %d"%(i),frame1)
@@ -73,9 +74,9 @@ if __name__ == "__main__":
 
     for i in range(n_object):
         (xmin, ymin, boxw, boxh) = cv2.boundingRect(bbox[i,:,:].astype(int))
-        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(1,0,0),linewidth=3)
+        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(1,0,0),linewidth=1)
         ax.add_patch(patch)
         (xmin, ymin, boxw, boxh) = cv2.boundingRect(newbbox[i,:,:].astype(int))
-        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(0,1,0),linewidth=3)
+        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(0,1,0),linewidth=1)
         ax.add_patch(patch)
     plt.show()
