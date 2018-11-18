@@ -23,16 +23,29 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         t = tf.SimilarityTransform()
         t.estimate(dst=actual_points, src=desired_points)
         mat = t.params
+
+        # estimate the new bounding box with all the feature points
+        # coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
+        # new_coords = mat.dot(coords)
+        # newbbox[obj_idx,:,:] = new_coords[0:2,:].T
+
+        # estimate the new bounding box with only the inliners (Added by Yongyi Wang)
+        Projected = mat.dot(np.vstack((desired_points.T.astype(float),np.ones([1,np.shape(desired_points)[0]]))))
+        diff = Projected[0:2,:].T - actual_points
+        distance = np.square(diff).sum(axis = 1)
+        actual_inliers = actual_points[distance < 16]
+        desired_inliers = desired_points[distance < 16]
+        if np.shape(desired_inliers)[0]<5:
+            actual_inliers = actual_points
+            desired_inliers = desired_points
+        # print (np.shape(actual_inliers),np.shape(desired_inliers))
+        t.estimate(dst=actual_inliers, src=desired_inliers)
+        mat = t.params
         coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
         new_coords = mat.dot(coords)
         newbbox[obj_idx,:,:] = new_coords[0:2,:].T
         # print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
-        # Projected = mat.dot(np.vstack(desired_points,np.array([1,1,1,1])))
-        # diff = Projected[0:2,:] - actual_points
-        # distance = np.square(diff).sum(axis = 0)
-        # actual_inliers = actual_points[distance < 16]
-        # desired_inliers = desired_points[distance < 16]
-        # t.estimate(dst=actual_inliers, src=desired_inliers)
+
     return None, None, newbbox
 
 if __name__ == "__main__":

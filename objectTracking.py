@@ -13,13 +13,14 @@ from applyGeometricTransformation import applyGeometricTransformation
 
 
 def objectTracking(rawVideo, draw_bb=False, play_realtime=False):
-    n_frame = 100
+    # initilize
+    n_frame = 500
     frames = np.empty((n_frame,),dtype=np.ndarray)
     bboxs = np.empty((n_frame,),dtype=np.ndarray)
-    # coords = np.full((n_frame,1000,2),-1)
     for frame_idx in range(n_frame):
         _, frames[frame_idx] = cap.read()
-    
+
+    # draw rectangle roi for target objects, or use default objects initilization
     if draw_bb:
         n_object = int(input("Number of objects to track:"))
         bboxs[0] = np.empty((n_object,4,2), dtype=float)
@@ -31,33 +32,36 @@ def objectTracking(rawVideo, draw_bb=False, play_realtime=False):
         n_object = 1
         bboxs[0] = np.array([[[291,187],[405,187],[291,267],[405,267]]]).astype(float)
 
-    startXs,startYs = getFeatures(cv2.cvtColor(frames[0],cv2.COLOR_BGR2GRAY),bboxs[0])
+    # Start from the first frame, do optical flow for every two consecutive frames.
+    startXs,startYs = getFeatures(cv2.cvtColor(frames[0],cv2.COLOR_BGR2GRAY),bboxs[0],use_shi=False)
     for i in range(1,n_frame):
+        print('Processing Frame',i)
         newXs, newYs = estimateAllTranslation(startXs, startYs, frames[i-1], frames[i])
         Xs, Ys ,bboxs[i] = applyGeometricTransformation(startXs, startYs, newXs, newYs, bboxs[i-1])
-        # startXs,startYs = getFeatures(cv2.cvtColor(frames[i],cv2.COLOR_BGR2GRAY),bboxs[i])
-        print('Processing Frame',i)
+        # update feature points every other frame? (We might want to do this only on certain conditions)
+        startXs,startYs = getFeatures(cv2.cvtColor(frames[i],cv2.COLOR_BGR2GRAY),bboxs[i])
+
+        # draw bounding box and visualize feature point for each object
+        for j in range(n_object):
+            frames[i] = cv2.rectangle(frames[i], (int(bboxs[i][j,0,0]), int(bboxs[i][j,0,1])), (int(bboxs[i][j,3,0]), int(bboxs[i][j,3,1])), (255,0,0), 2)
+            for k in range(newXs.shape[0]):
+                frames[i] = cv2.circle(frames[i], (int(newXs[k,j]),int(newYs[k,j])),3,(0,0,255),thickness=2)
+            # imshow if to play the result in real time
+            if play_realtime:
+                cv2.imshow("win",frames[i])
+                cv2.waitKey(10)
+        
+        # update coordinates
         startXs = newXs
         startYs = newYs
-        # coords[i,0:np.size(newXs),0:1] = newXs.flatten()
-        # coords[i,0:np.size(newYs),1:2] = newYs.flatten()
 
-        if play_realtime:
-            for j in range(n_object):
-                frame_bb = cv2.rectangle(frames[i], (int(bboxs[i][j,0,0]), int(bboxs[i][j,0,1])), (int(bboxs[i][j,3,0]), int(bboxs[i][j,3,1])), (255,0,0), 2)
-                    # frame_bb = cv2.circle(frame_bb,tuple(coords[i,:,:].tolist()),1,(0,0,255))
-                cv2.imshow("win",frame_bb)
-                cv2.waitKey(10)
-
+    # loop the resulting video (for debugging purpose only)
     while 1:
         for i in range(1,n_frame):
-            for j in range(n_object):
-                frame_bb = cv2.rectangle(frames[i], (int(bboxs[i][j,0,0]), int(bboxs[i][j,0,1])), (int(bboxs[i][j,3,0]), int(bboxs[i][j,3,1])), (255,0,0), 2)
-            # frame_bb = cv2.circle(frame_bb,tuple(coords[i,:,:].tolist()),1,(0,0,255))
-            cv2.imshow("win",frame_bb)
+            cv2.imshow("win",frames[i])
             cv2.waitKey(50)
 
 
 if __name__ == "__main__":
     cap = cv2.VideoCapture("Easy.mp4")
-    objectTracking(cap,)
+    objectTracking(cap,draw_bb=True,play_realtime=True)
