@@ -7,15 +7,24 @@
 import cv2
 import numpy as np
 from skimage import transform as tf
+import random
 
 def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
     n_object = bbox.shape[0]
     newbbox = np.zeros_like(bbox)
+    updatedXs = np.full(startXs.shape,-1,dtype=float)
+    updatedYs = np.full(startYs.shape,-1,dtype=float)
     for obj_idx in range(n_object):
         startXs_obj = startXs[:,[obj_idx]]
         startYs_obj = startYs[:,[obj_idx]]
         newXs_obj = newXs[:,[obj_idx]]
         newYs_obj = newYs[:,[obj_idx]]
+        # keep the none -1 elements (Yongyi Wang)
+        pos= (startXs_obj!=-1)
+        startXs_obj=np.array(startXs_obj[pos]).reshape(-1,1)
+        startYs_obj=np.array(startYs_obj[pos]).reshape(-1,1)
+        newXs_obj=np.array(newXs_obj[pos]).reshape(-1,1)
+        newYs_obj=np.array(newYs_obj[pos]).reshape(-1,1)
         desired_points = np.hstack((startXs_obj,startYs_obj))
         actual_points = np.hstack((newXs_obj,newYs_obj))
         # tform = tf.estimate_transform('similarity', src, dst)
@@ -38,23 +47,57 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         if np.shape(desired_inliers)[0]<5:
             actual_inliers = actual_points
             desired_inliers = desired_points
-        # print (np.shape(actual_inliers),np.shape(desired_inliers))
         t.estimate(dst=actual_inliers, src=desired_inliers)
         mat = t.params
         coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
         new_coords = mat.dot(coords)
         newbbox[obj_idx,:,:] = new_coords[0:2,:].T
-        print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
         Xs = actual_inliers[:,0].reshape(-1,1)
         Ys = actual_inliers[:,1].reshape(-1,1)
-        if n_object == 1:
-            newXs = Xs
-            newYs = Ys
-        # updatedXs = np.zeros((np.shape(Xs)[0],n_object))
-        # updatedYs = np.zeros((np.shape(Ys)[0],n_object))
-        # updatedXs[:,[obj_idx]] = Xs
-        # updatedYs[:,[obj_idx]] = Ys 
-    return newXs, newYs, newbbox
+
+        # RANSAC (Yongyi Wang)
+        # max_num_inliers = 0
+        # for i in range(80):
+        #     L = random.sample(range(np.shape(startXs_obj)[0]), 2)
+        #     sub_startXs_obj = startXs_obj[L]
+        #     sub_startYs_obj = startYs_obj[L]
+        #     sub_newXs_obj = newXs_obj[L]
+        #     sub_newYs_obj = newYs_obj[L]
+        #     sub_desired_points = np.hstack((sub_startXs_obj,sub_startYs_obj))
+        #     sub_actual_points = np.hstack((sub_newXs_obj,sub_newYs_obj))
+        #     t.estimate(dst=sub_actual_points, src=sub_desired_points)
+        #     mat = t.params
+        #     Projected = mat.dot(np.vstack((desired_points.T.astype(float),np.ones([1,np.shape(desired_points)[0]]))))
+        #     diff = Projected[0:2,:].T - actual_points
+        #     distance = np.square(diff).sum(axis = 1)
+        #     actual_inliers = actual_points[distance < 4]
+        #     desired_inliers = desired_points[distance < 4]
+        #     if np.shape(desired_inliers)[0]>max_num_inliers:                
+        #         max_num_inliers = np.shape(desired_inliers)[0]
+        #         final_actual_inliers = actual_inliers
+        #         final_desired_inliers = desired_inliers
+        # print ('Inliers:',max_num_inliers)
+        # t.estimate(dst=final_actual_inliers, src=final_desired_inliers)
+        # mat = t.params
+        # coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
+        # new_coords = mat.dot(coords)
+        # newbbox[obj_idx,:,:] = new_coords[0:2,:].T
+        # Xs = final_actual_inliers[:,0].reshape(-1,1)
+        # Ys = final_actual_inliers[:,1].reshape(-1,1)
+
+        # delete the points outside the bounding box (Yongyi Wang)
+        print (np.shape(Xs))
+        (xmin, ymin, boxw, boxh) = cv2.boundingRect(newbbox[obj_idx,:,:].astype(int))
+        index = (xmin < Xs) & (ymin < Ys) &  (Xs < xmin+boxw) & (Ys < ymin+boxh)
+        Xs = Xs[index].reshape(-1,1)
+        Ys = Ys[index].reshape(-1,1)
+        print (np.shape(Xs))
+
+        # record the remaining feature pts for each object
+        updatedXs[0:np.shape(Xs)[0],[obj_idx]] = Xs
+        updatedYs[0:np.shape(Ys)[0],[obj_idx]] = Ys
+
+    return updatedXs, updatedYs, newbbox
 
 if __name__ == "__main__":
     from getFeatures import getFeatures

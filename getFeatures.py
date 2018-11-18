@@ -19,7 +19,7 @@ def getFeatures(img,bbox,use_shi=False):
             corner_response = corner_shi_tomasi(roi)
         else:
             corner_response = corner_harris(roi)
-        coordinates = peak_local_max(corner_response,num_peaks=30,exclude_border=2)
+        coordinates = peak_local_max(corner_response,num_peaks=20,exclude_border=2)
         coordinates[:,1] += xmin
         coordinates[:,0] += ymin
         temp[i] = coordinates
