@@ -33,8 +33,8 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         Projected = mat.dot(np.vstack((desired_points.T.astype(float),np.ones([1,np.shape(desired_points)[0]]))))
         diff = Projected[0:2,:].T - actual_points
         distance = np.square(diff).sum(axis = 1)
-        actual_inliers = actual_points[distance < 16]
-        desired_inliers = desired_points[distance < 16]
+        actual_inliers = actual_points[distance < 12]
+        desired_inliers = desired_points[distance < 12]
         if np.shape(desired_inliers)[0]<5:
             actual_inliers = actual_points
             desired_inliers = desired_points
@@ -44,9 +44,17 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
         new_coords = mat.dot(coords)
         newbbox[obj_idx,:,:] = new_coords[0:2,:].T
-        # print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
-
-    return None, None, newbbox
+        print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
+        Xs = actual_inliers[:,0].reshape(-1,1)
+        Ys = actual_inliers[:,1].reshape(-1,1)
+        if n_object == 1:
+            newXs = Xs
+            newYs = Ys
+        # updatedXs = np.zeros((np.shape(Xs)[0],n_object))
+        # updatedYs = np.zeros((np.shape(Ys)[0],n_object))
+        # updatedXs[:,[obj_idx]] = Xs
+        # updatedYs[:,[obj_idx]] = Ys 
+    return newXs, newYs, newbbox
 
 if __name__ == "__main__":
     from getFeatures import getFeatures
