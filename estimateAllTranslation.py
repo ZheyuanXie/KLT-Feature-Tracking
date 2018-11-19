@@ -13,11 +13,20 @@ from getFeatures import getFeatures
 from estimateFeatureTranslation import estimateFeatureTranslation
 
 def estimateAllTranslation(startXs,startYs,img1,img2):
-    G = GaussianPDF_2D(0, 0.5, 3, 3)
-    I = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
-    dx, dy = np.gradient(G, axis=(1,0))
-    Iy = signal.fftconvolve(I, dy, 'same')
-    Ix = signal.fftconvolve(I, dx, 'same')
+    I = cv2.cvtColor(img1,cv2.COLOR_RGB2GRAY)
+
+    # G = GaussianPDF_2D(0, 0.2, 5, 5)
+    I = cv2.GaussianBlur(I,(5,5),0.2)
+    # dx, dy = np.gradient(G, axis=(1,0))
+    # Iy = signal.fftconvolve(I, dy, 'same')
+    # Ix = signal.fftconvolve(I, dx, 'same')
+    # cv2.imshow('Ix',Ix.astype(np.uint8))
+    # cv2.imshow('Iy',Iy.astype(np.uint8))
+    
+    Iy, Ix = np.gradient(I.astype(float))
+    # cv2.imshow('Ix2',Ix.astype(np.uint8))
+    # cv2.imshow('Iy2',Iy.astype(np.uint8))
+
     startXs_flat = startXs.flatten()
     startYs_flat = startYs.flatten()
     newXs = np.full(startXs_flat.shape,-1,dtype=float)

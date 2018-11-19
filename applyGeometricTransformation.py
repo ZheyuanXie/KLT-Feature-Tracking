@@ -11,6 +11,8 @@ from skimage import transform as tf
 def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
     n_object = bbox.shape[0]
     newbbox = np.zeros_like(bbox)
+    Xs = newXs.copy()
+    Ys = newYs.copy()
     for obj_idx in range(n_object):
         startXs_obj = startXs[:,[obj_idx]]
         startYs_obj = startYs[:,[obj_idx]]
@@ -18,8 +20,6 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         newYs_obj = newYs[:,[obj_idx]]
         desired_points = np.hstack((startXs_obj,startYs_obj))
         actual_points = np.hstack((newXs_obj,newYs_obj))
-        # tform = tf.estimate_transform('similarity', src, dst)
-        # newbbox[obj_idx,:,:] = tform(bbox[obj_idx,:,:])
         t = tf.SimilarityTransform()
         t.estimate(dst=actual_points, src=desired_points)
         mat = t.params
@@ -30,23 +30,24 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
         # newbbox[obj_idx,:,:] = new_coords[0:2,:].T
 
         # estimate the new bounding box with only the inliners (Added by Yongyi Wang)
-        Projected = mat.dot(np.vstack((desired_points.T.astype(float),np.ones([1,np.shape(desired_points)[0]]))))
-        diff = Projected[0:2,:].T - actual_points
-        distance = np.square(diff).sum(axis = 1)
-        actual_inliers = actual_points[distance < 16]
-        desired_inliers = desired_points[distance < 16]
-        if np.shape(desired_inliers)[0]<5:
+        THRES = 1
+        projected = mat.dot(np.vstack((desired_points.T.astype(float),np.ones([1,np.shape(desired_points)[0]]))))
+        distance = np.square(projected[0:2,:].T - actual_points).sum(axis = 1)
+        actual_inliers = actual_points[distance < THRES]
+        desired_inliers = desired_points[distance < THRES]
+        if np.shape(desired_inliers)[0]<4:
+            print('too few points')
             actual_inliers = actual_points
             desired_inliers = desired_points
-        # print (np.shape(actual_inliers),np.shape(desired_inliers))
         t.estimate(dst=actual_inliers, src=desired_inliers)
         mat = t.params
         coords = np.vstack((bbox[obj_idx,:,:].T,np.array([1,1,1,1])))
         new_coords = mat.dot(coords)
         newbbox[obj_idx,:,:] = new_coords[0:2,:].T
-        # print(bbox[obj_idx,:,:],newbbox[obj_idx,:,:])
+        Xs[distance >= THRES, obj_idx] = -1
+        Ys[distance >= THRES, obj_idx] = -1
 
-    return None, None, newbbox
+    return Xs, Ys, newbbox
 
 if __name__ == "__main__":
     from getFeatures import getFeatures
