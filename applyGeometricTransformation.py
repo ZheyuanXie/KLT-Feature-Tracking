@@ -7,17 +7,26 @@
 import cv2
 import numpy as np
 from skimage import transform as tf
+import random
 
 def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox):
     n_object = bbox.shape[0]
     newbbox = np.zeros_like(bbox)
+
     Xs = newXs.copy()
     Ys = newYs.copy()
+
     for obj_idx in range(n_object):
         startXs_obj = startXs[:,[obj_idx]]
         startYs_obj = startYs[:,[obj_idx]]
         newXs_obj = newXs[:,[obj_idx]]
         newYs_obj = newYs[:,[obj_idx]]
+        # keep the none -1 elements (Yongyi Wang)
+        pos= (startXs_obj!=-1)
+        startXs_obj=np.array(startXs_obj[pos]).reshape(-1,1)
+        startYs_obj=np.array(startYs_obj[pos]).reshape(-1,1)
+        newXs_obj=np.array(newXs_obj[pos]).reshape(-1,1)
+        newYs_obj=np.array(newYs_obj[pos]).reshape(-1,1)
         desired_points = np.hstack((startXs_obj,startYs_obj))
         actual_points = np.hstack((newXs_obj,newYs_obj))
         t = tf.SimilarityTransform()

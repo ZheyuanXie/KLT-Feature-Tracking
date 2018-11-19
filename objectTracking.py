@@ -59,6 +59,7 @@ def objectTracking(rawVideo, draw_bb=False, play_realtime=False):
             frames_draw[i] = cv2.rectangle(frames_draw[i], (xmin,ymin), (xmin+boxw,ymin+boxh), (255,0,0), 2)
             for k in range(startXs.shape[0]):
                 frames_draw[i] = cv2.circle(frames_draw[i], (int(startXs[k,j]),int(startYs[k,j])),3,(0,0,255),thickness=2)
+
             # imshow if to play the result in real time
             if play_realtime:
                 cv2.imshow("win",frames_draw[i])
