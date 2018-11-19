@@ -15,6 +15,7 @@ def getFeatures(img,bbox,use_shi=False):
     for i in range(n_object):
         (xmin, ymin, boxw, boxh) = cv2.boundingRect(bbox[i,:,:].astype(int))
         roi = img[ymin:ymin+boxh,xmin:xmin+boxw]
+        # cv2.imshow('roi',roi)
         if use_shi:
             corner_response = corner_shi_tomasi(roi)
         else:
