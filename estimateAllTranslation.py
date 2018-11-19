@@ -63,5 +63,3 @@ if __name__ == "__main__":
         patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(0,0,0),linewidth=1)
         ax.add_patch(patch)
     plt.show()
-
-
