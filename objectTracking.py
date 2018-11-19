@@ -14,7 +14,7 @@ from applyGeometricTransformation import applyGeometricTransformation
 
 def objectTracking(rawVideo, draw_bb=False, play_realtime=False, save_to_file=False):
     # initilize
-    n_frame = 5
+    n_frame = 400
     frames = np.empty((n_frame,),dtype=np.ndarray)
     frames_draw = np.empty((n_frame,),dtype=np.ndarray)
     bboxs = np.empty((n_frame,),dtype=np.ndarray)
@@ -23,7 +23,7 @@ def objectTracking(rawVideo, draw_bb=False, play_realtime=False, save_to_file=Fa
 
     # draw rectangle roi for target objects, or use default objects initilization
     if draw_bb:
-        n_object = 1#int(input("Number of objects to track:"))
+        n_object = int(input("Number of objects to track:"))
         bboxs[0] = np.empty((n_object,4,2), dtype=float)
         for i in range(n_object):
             (xmin, ymin, boxw, boxh) = cv2.selectROI("Select Object %d"%(i),frames[0])
@@ -49,25 +49,25 @@ def objectTracking(rawVideo, draw_bb=False, play_realtime=False, save_to_file=Fa
 
         # update feature points every other frame? (We might want to do this only on certain conditions)
         n_features_left = np.sum(Xs!=-1)
-        print(n_features_left)
+        print('# of Features: %d'%n_features_left)
         if n_features_left < 15:
-            print('new features')
+            print('Generate New Features')
             startXs,startYs = getFeatures(cv2.cvtColor(frames[i],cv2.COLOR_RGB2GRAY),bboxs[i])
 
         # draw bounding box and visualize feature point for each object
+        frames_draw[i] = frames[i].copy()
         for j in range(n_object):
-            frames_draw[i] = frames[i].copy()
             (xmin, ymin, boxw, boxh) = cv2.boundingRect(bboxs[i][j,:,:].astype(int))
-            print(boxw,boxh)
             frames_draw[i] = cv2.rectangle(frames_draw[i], (xmin,ymin), (xmin+boxw,ymin+boxh), (255,0,0), 2)
             for k in range(startXs.shape[0]):
                 frames_draw[i] = cv2.circle(frames_draw[i], (int(startXs[k,j]),int(startYs[k,j])),3,(0,0,255),thickness=2)
-            # imshow if to play the result in real time
-            if play_realtime:
-                cv2.imshow("win",frames_draw[i])
-                cv2.waitKey(10)
-            if save_to_file:
-                out.write(frames_draw[i])
+        
+        # imshow if to play the result in real time
+        if play_realtime:
+            cv2.imshow("win",frames_draw[i])
+            cv2.waitKey(10)
+        if save_to_file:
+            out.write(frames_draw[i])
     
     if save_to_file:
         out.release()
