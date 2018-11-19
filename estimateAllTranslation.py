@@ -42,6 +42,12 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture("Easy.mp4")
     ret, frame1 = cap.read()  # get first frame
     ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
     frame1_gray = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
     frame2_gray = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 

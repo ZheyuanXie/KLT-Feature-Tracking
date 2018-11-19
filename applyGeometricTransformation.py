@@ -56,6 +56,12 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture("Easy.mp4")
     ret, frame1 = cap.read()  # get first frame
     ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
+    ret, frame2 = cap.read()  # get second frame
     frame1_gray = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
     frame2_gray = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 
@@ -82,15 +88,15 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
 
     diff = np.subtract(frame1_gray.astype(int),frame2_gray.astype(int))
-    ax.imshow(diff,cmap='gray')
-    ax.scatter(newXs[newXs!=-1],newYs[newYs!=-1],color=(0,1,0))
-    ax.scatter(startXs[startXs!=-1],startYs[startYs!=-1],color=(1,0,0))
+    ax.imshow(cv2.cvtColor(frame2,cv2.COLOR_BGR2RGB))
+    # ax.scatter(newXs[newXs!=-1],newYs[newYs!=-1],color=(0,1,0))
+    # ax.scatter(startXs[startXs!=-1],startYs[startYs!=-1],color=(1,0,0))
 
     for i in range(n_object):
         (xmin, ymin, boxw, boxh) = cv2.boundingRect(bbox[i,:,:].astype(int))
-        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(1,0,0),linewidth=1)
+        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(1,0,0),linewidth=2)
         ax.add_patch(patch)
         (xmin, ymin, boxw, boxh) = cv2.boundingRect(newbbox[i,:,:].astype(int))
-        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(0,1,0),linewidth=1)
+        patch = Rectangle((xmin,ymin),boxw,boxh,fill=False,color=(0,1,0),linewidth=2)
         ax.add_patch(patch)
     plt.show()

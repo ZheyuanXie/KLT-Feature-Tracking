@@ -47,7 +47,7 @@ def objectTracking(rawVideo, draw_bb=False, play_realtime=False, save_to_file=Fa
         startXs = Xs
         startYs = Ys
 
-        # update feature points every other frame? (We might want to do this only on certain conditions)
+        # update feature points as required
         n_features_left = np.sum(Xs!=-1)
         print('# of Features: %d'%n_features_left)
         if n_features_left < 15:
