@@ -1,4 +1,4 @@
-# Project 3b: Optical Flow & Visual Tracking
+# KLT-Feature-Tracking
 
 ## Getting Started
 ### Dependency
